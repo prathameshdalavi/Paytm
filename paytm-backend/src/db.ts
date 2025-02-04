@@ -6,23 +6,12 @@ const userShema=new Schema({
     email:String,
     password:String,
 })
-const balanceSchema=new Schema({
+const accountSchema=new Schema({
+    userId:Schema.Types.ObjectId,
     balance:Number,
-    userId:Schema.Types.ObjectId,
 })
-const transactionSchema=new Schema({
-    amount:Number,
-    userId:Schema.Types.ObjectId,
-    type:String,
-    senderId:Schema.Types.ObjectId,
-    receiverId:Schema.Types.ObjectId,
-}) 
-const BankAccountSchema=new Schema({
-    bankName:String,
-    userId:Schema.Types.ObjectId,
-})
+
+
 const User=mongoose.model('User',userShema)
-const Balance=mongoose.model('Balance',balanceSchema)
-const Transaction=mongoose.model('Transaction',transactionSchema)
-const BankAccount=mongoose.model('BankAccount',BankAccountSchema)
-export {User,Balance,Transaction,BankAccount}
+const Account=mongoose.model('Account',accountSchema)
+export {User,Account}
