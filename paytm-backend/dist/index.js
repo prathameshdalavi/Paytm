@@ -29,9 +29,7 @@ function main() {
 main();
 app.post("/api/v1/signUp", function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("1");
         const { firstName, lastName, email, password } = req.body;
-        console.log("2");
         const requireBody = zod_1.z.object({
             firstName: zod_1.z.string().min(3).max(30),
             lastName: zod_1.z.string().min(3).max(30),
@@ -187,10 +185,30 @@ app.post("/api/v1/transaction", middleware_1.usermiddleware, function (req, res)
         }
         yield db_1.Account.updateOne({ userId: req.body.userId.userId }, { $inc: { balance: -amount } }).session(session);
         yield db_1.Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
+        yield db_1.Transaction.create([{
+                from: req.body.userId.userId,
+                to: to,
+                amount: amount
+            }], { session });
         yield session.commitTransaction();
         res.json({
             message: "Transfer successful"
         });
+    });
+});
+app.get("/api/v1/transactionHistory", middleware_1.usermiddleware, function (req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const userId = req.body.userId.userId;
+        try {
+            const transactionHistory = yield db_1.Transaction.find({ from: req.body.userId.userId }).sort({ createdAt: -1 });
+            res.json(transactionHistory);
+        }
+        catch (e) {
+            res.status(500).json({
+                message: "something went wrong",
+                error: e
+            });
+        }
     });
 });
 app.listen(3000, () => {

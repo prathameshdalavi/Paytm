@@ -4,7 +4,7 @@ import bcrypt from "bcrypt"
 import { z } from "zod"
 import Jwt from "jsonwebtoken"
 import { JWT_SECRET_KEY, usermiddleware } from './middleware';
-import { User, Account } from './db'
+import { User, Account, Transaction } from './db'
 import mongoose from 'mongoose';
 app.use(express.json());
 async function main() {
@@ -163,10 +163,28 @@ app.post("/api/v1/transaction", usermiddleware, async function (req: Request, re
     }
     await Account.updateOne({ userId: req.body.userId.userId }, { $inc: { balance: -amount } }).session(session);
     await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
+    await Transaction.create([{ 
+        from: req.body.userId.userId, 
+        to: to, 
+        amount: amount 
+    }], { session });
     await session.commitTransaction();
     res.json({
         message: "Transfer successful"
     });
+})
+app.get("/api/v1/transactionHistory", usermiddleware, async function (req: Request, res: Response) {
+    const userId = req.body.userId.userId;
+    try {
+        const transactionHistory: any = await Transaction.find({ from:req.body.userId.userId }).sort({ createdAt: -1 });
+        res.json(transactionHistory)
+    }
+    catch (e) {
+        res.status(500).json({
+            message: "something went wrong",
+            error: e
+        })
+    }
 })
 app.listen(3000, () => {
     console.log("listening on port 3000");
