@@ -20,6 +20,8 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const middleware_1 = require("./middleware");
 const db_1 = require("./db");
 const mongoose_1 = __importDefault(require("mongoose"));
+const cors_1 = __importDefault(require("cors"));
+app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 function main() {
     return __awaiter(this, void 0, void 0, function* () {

@@ -6,6 +6,8 @@ import Jwt from "jsonwebtoken"
 import { JWT_SECRET_KEY, usermiddleware } from './middleware';
 import { User, Account, Transaction } from './db'
 import mongoose from 'mongoose';
+import cors from 'cors';
+app.use(cors());
 app.use(express.json());
 async function main() {
     await mongoose.connect("mongodb+srv://prathameshdalavi04:patya131104@cluster0.8rk6v.mongodb.net/paytm");
