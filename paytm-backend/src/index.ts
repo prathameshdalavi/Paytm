@@ -113,10 +113,34 @@ app.post("/api/v1/signIn", async function (req: Request, res: Response) {
 })
 app.post("/api/v1/addAccount", usermiddleware, async function (req: Request, res: Response) {
     const userId = req.body.userId.userId;
+    const password = req.body.password;
+    const requireBody = z.object({
+        password: z.string().min(6).max(30),
+    })
+    try{
+        const parseData = requireBody.safeParse(req.body);
+        if (!parseData.success) {
+            res.status(400).json({
+                message: "invalid data",
+                error: parseData.error,
+            })
+            return;
+        }
+    }
+    catch (e) {
+        if (e instanceof z.ZodError) {
+            res.json({
+                message: "invalid data",
+                error: e.errors
+            })
+            return;
+    }
+    }
     try {
         await Account.create({
             userId: userId,
-            balance: 1 + Math.random() * 10000
+            balance: 1 + Math.random() * 10000,
+            password:password
         })
         res.json({
             message: "account created"
@@ -131,50 +155,78 @@ app.post("/api/v1/addAccount", usermiddleware, async function (req: Request, res
 })
 app.get("/api/v1/balance", usermiddleware, async function (req: Request, res: Response) {
     const userId = req.body.userId.userId;
+    const password = req.body.password;
+
     try {
-        const balance: any = await Account.findOne({ userId: userId });
-        res.json(balance.balance)
-    }
-    catch (e) {
+        const account: any = await Account.findOne({ userId: userId });
+        if (!account) {
+            res.status(404).json({ message: "Account not found" });
+            return;
+        }
+
+        const passwordMatch = await bcrypt.compare(password, account.password);
+        if (!passwordMatch) {
+            res.status(401).json({ message: "Incorrect password" });
+            return;
+        }
+
+        res.json({ balance: account.balance });
+
+    } catch (e) {
         res.status(500).json({
-            message: "something went wrong",
+            message: "Something went wrong",
             error: e
-        })
+        });
     }
-})
+});
+
 
 app.post("/api/v1/transaction", usermiddleware, async function (req: Request, res: Response) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    const { amount, to } = req.body;
-    const account: any = await Account.findOne({ userId: req.body.userId.userId }).session(session);
-    if (!account || account.balance < amount) {
-        await session.abortTransaction();
-        res.status(400).json({
-            message: "Insufficient balance"
-        });
-        return;
-    }
-    const toAccount = await Account.findOne({ userId: to }).session(session);
-    if (!toAccount) {
-        await session.abortTransaction();
-        res.status(400).json({
-            message: "Invalid account"
-        });
-        return
-    }
-    await Account.updateOne({ userId: req.body.userId.userId }, { $inc: { balance: -amount } }).session(session);
-    await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
-    await Transaction.create([{ 
-        from: req.body.userId.userId, 
-        to: to, 
-        amount: amount 
-    }], { session });
-    await session.commitTransaction();
-    res.json({
-        message: "Transfer successful"
+        const { password, amount, to } = req.body;
+        const userId = req.body.userId.userId;
+    
+        try {
+            const account: any = await Account.findOne({ userId: userId });
+            if (!account) {
+                res.status(404).json({ message: "Account not found" });
+                return;
+            }
+            const passwordMatch = await bcrypt.compare(password, account.password);
+            if (!passwordMatch) {
+                res.status(401).json({ message: "Incorrect password" });
+                return;
+            }
+            const session = await mongoose.startSession();
+            session.startTransaction();
+    
+            if (account.balance < amount) {
+                await session.abortTransaction();
+                 res.status(400).json({ message: "Insufficient balance" });
+                return;
+            }
+    
+            const toAccount = await Account.findOne({ userId: to }).session(session);
+            if (!toAccount) {
+                await session.abortTransaction();
+                res.status(400).json({ message: "Invalid recipient account" });
+                return;
+            }
+    
+            await Account.updateOne({ userId: userId }, { $inc: { balance: -amount } }).session(session);
+            await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
+            await Transaction.create([{ from: userId, to: to, amount: amount }], { session });
+    
+            await session.commitTransaction();
+            res.json({ message: "Transfer successful" });
+    
+        } catch (e) {
+            res.status(500).json({
+                message: "Something went wrong",
+                error: e
+            });
+        }
     });
-})
+    
 app.get("/api/v1/transactionHistory", usermiddleware, async function (req: Request, res: Response) {
     const userId = req.body.userId.userId;
     try {

@@ -1,3 +1,4 @@
+import { Dashboard } from "./pages/dashboard";
 import { Signin } from "./pages/signin";
 import { Signup } from "./pages/signup";
 import { BrowserRouter,Routes,Route } from "react-router-dom";
@@ -7,6 +8,7 @@ export default function App() {
       <Routes>
         <Route path="/SignIn" element={<Signin />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/dashboard" element={<Dashboard/>}/>
       </Routes>
     </BrowserRouter>
   )

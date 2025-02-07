@@ -8,6 +8,7 @@ const userShema=new Schema({
 const accountSchema=new Schema({
     userId:Schema.Types.ObjectId,
     balance:Number,
+    password:String
 })
 const transactionSchema=new Schema({
     from:Schema.Types.ObjectId,
