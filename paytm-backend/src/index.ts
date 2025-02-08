@@ -137,10 +137,11 @@ app.post("/api/v1/addAccount", usermiddleware, async function (req: Request, res
     }
     }
     try {
+        const hashPassword = await bcrypt.hash(password, 10);
         await Account.create({
             userId: userId,
             balance: 1 + Math.random() * 10000,
-            password:password
+            password: hashPassword
         })
         res.json({
             message: "account created"
@@ -153,9 +154,25 @@ app.post("/api/v1/addAccount", usermiddleware, async function (req: Request, res
         })
     }
 })
+app.get("/api/v1/users", usermiddleware, async function (req: Request, res: Response) {
+    const thisUserId = req.body.userId.userId;
+    try {
+        const users = await User.find({ _id: { $ne: thisUserId } });
+        const usersData=users.map((users)=>({
+            name:users.firstName+" "+users.lastName,
+            accountNumber:users._id.toString()
+        }))
+        res.json({data:usersData});
+    } catch (e) {
+        res.status(500).json({
+            message: "Something went wrong",
+            error: e
+        });
+    }
+})
 app.get("/api/v1/balance", usermiddleware, async function (req: Request, res: Response) {
     const userId = req.body.userId.userId;
-    const password = req.body.password;
+    const password = req.query.password as string;
 
     try {
         const account: any = await Account.findOne({ userId: userId });
@@ -182,9 +199,9 @@ app.get("/api/v1/balance", usermiddleware, async function (req: Request, res: Re
 
 
 app.post("/api/v1/transaction", usermiddleware, async function (req: Request, res: Response) {
-        const { password, amount, to } = req.body;
+        const {amount, to} = req.body;
+        const password = req.query.password as string;
         const userId = req.body.userId.userId;
-    
         try {
             const account: any = await Account.findOne({ userId: userId });
             if (!account) {

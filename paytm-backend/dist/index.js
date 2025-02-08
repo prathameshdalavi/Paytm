@@ -132,10 +132,35 @@ app.post("/api/v1/signIn", function (req, res) {
 app.post("/api/v1/addAccount", middleware_1.usermiddleware, function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const userId = req.body.userId.userId;
+        const password = req.body.password;
+        const requireBody = zod_1.z.object({
+            password: zod_1.z.string().min(6).max(30),
+        });
         try {
+            const parseData = requireBody.safeParse(req.body);
+            if (!parseData.success) {
+                res.status(400).json({
+                    message: "invalid data",
+                    error: parseData.error,
+                });
+                return;
+            }
+        }
+        catch (e) {
+            if (e instanceof zod_1.z.ZodError) {
+                res.json({
+                    message: "invalid data",
+                    error: e.errors
+                });
+                return;
+            }
+        }
+        try {
+            const hashPassword = yield bcrypt_1.default.hash(password, 10);
             yield db_1.Account.create({
                 userId: userId,
-                balance: 1 + Math.random() * 10000
+                balance: 1 + Math.random() * 10000,
+                password: hashPassword
             });
             res.json({
                 message: "account created"
@@ -149,16 +174,45 @@ app.post("/api/v1/addAccount", middleware_1.usermiddleware, function (req, res) 
         }
     });
 });
-app.get("/api/v1/balance", middleware_1.usermiddleware, function (req, res) {
+app.get("/api/v1/users", middleware_1.usermiddleware, function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const userId = req.body.userId.userId;
+        const thisUserId = req.body.userId.userId;
         try {
-            const balance = yield db_1.Account.findOne({ userId: userId });
-            res.json(balance.balance);
+            const users = yield db_1.User.find({ _id: { $ne: thisUserId } });
+            const usersData = users.map((users) => ({
+                name: users.firstName + " " + users.lastName,
+                accountNumber: users._id.toString()
+            }));
+            res.json({ data: usersData });
         }
         catch (e) {
             res.status(500).json({
-                message: "something went wrong",
+                message: "Something went wrong",
+                error: e
+            });
+        }
+    });
+});
+app.get("/api/v1/balance", middleware_1.usermiddleware, function (req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const userId = req.body.userId.userId;
+        const password = req.query.password;
+        try {
+            const account = yield db_1.Account.findOne({ userId: userId });
+            if (!account) {
+                res.status(404).json({ message: "Account not found" });
+                return;
+            }
+            const passwordMatch = yield bcrypt_1.default.compare(password, account.password);
+            if (!passwordMatch) {
+                res.status(401).json({ message: "Incorrect password" });
+                return;
+            }
+            res.json({ balance: account.balance });
+        }
+        catch (e) {
+            res.status(500).json({
+                message: "Something went wrong",
                 error: e
             });
         }
@@ -166,36 +220,44 @@ app.get("/api/v1/balance", middleware_1.usermiddleware, function (req, res) {
 });
 app.post("/api/v1/transaction", middleware_1.usermiddleware, function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const session = yield mongoose_1.default.startSession();
-        session.startTransaction();
-        const { amount, to } = req.body;
-        const account = yield db_1.Account.findOne({ userId: req.body.userId.userId }).session(session);
-        if (!account || account.balance < amount) {
-            yield session.abortTransaction();
-            res.status(400).json({
-                message: "Insufficient balance"
-            });
-            return;
+        const { password, amount, to } = req.body;
+        const userId = req.body.userId.userId;
+        try {
+            const account = yield db_1.Account.findOne({ userId: userId });
+            if (!account) {
+                res.status(404).json({ message: "Account not found" });
+                return;
+            }
+            const passwordMatch = yield bcrypt_1.default.compare(password, account.password);
+            if (!passwordMatch) {
+                res.status(401).json({ message: "Incorrect password" });
+                return;
+            }
+            const session = yield mongoose_1.default.startSession();
+            session.startTransaction();
+            if (account.balance < amount) {
+                yield session.abortTransaction();
+                res.status(400).json({ message: "Insufficient balance" });
+                return;
+            }
+            const toAccount = yield db_1.Account.findOne({ userId: to }).session(session);
+            if (!toAccount) {
+                yield session.abortTransaction();
+                res.status(400).json({ message: "Invalid recipient account" });
+                return;
+            }
+            yield db_1.Account.updateOne({ userId: userId }, { $inc: { balance: -amount } }).session(session);
+            yield db_1.Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
+            yield db_1.Transaction.create([{ from: userId, to: to, amount: amount }], { session });
+            yield session.commitTransaction();
+            res.json({ message: "Transfer successful" });
         }
-        const toAccount = yield db_1.Account.findOne({ userId: to }).session(session);
-        if (!toAccount) {
-            yield session.abortTransaction();
-            res.status(400).json({
-                message: "Invalid account"
+        catch (e) {
+            res.status(500).json({
+                message: "Something went wrong",
+                error: e
             });
-            return;
         }
-        yield db_1.Account.updateOne({ userId: req.body.userId.userId }, { $inc: { balance: -amount } }).session(session);
-        yield db_1.Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
-        yield db_1.Transaction.create([{
-                from: req.body.userId.userId,
-                to: to,
-                amount: amount
-            }], { session });
-        yield session.commitTransaction();
-        res.json({
-            message: "Transfer successful"
-        });
     });
 });
 app.get("/api/v1/transactionHistory", middleware_1.usermiddleware, function (req, res) {

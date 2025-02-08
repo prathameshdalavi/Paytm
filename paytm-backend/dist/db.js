@@ -44,6 +44,7 @@ const userShema = new mongoose_1.Schema({
 const accountSchema = new mongoose_1.Schema({
     userId: mongoose_1.Schema.Types.ObjectId,
     balance: Number,
+    password: String,
 });
 const transactionSchema = new mongoose_1.Schema({
     from: mongoose_1.Schema.Types.ObjectId,
