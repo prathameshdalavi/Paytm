@@ -14,26 +14,34 @@ export function TransactionContentModel({ open, onClose }: TransactionContentMod
         const password = passwordRef.current?.value;
         const amount = amountRef.current?.value;
         const AccNum = AccNumRef.current?.value;
-        if (!password) {
-            alert("Enter the password")
+    
+        if (!password || !amount || !AccNum) {
+            alert("All fields are required");
+            return;
         }
+    
         try {
-             await axios.post(`${BackendUrl}/api/v1/balance`, {
-                headers: {
-                    token: localStorage.getItem("Token"),
+            await axios.post(
+                `${BackendUrl}/api/v1/transaction`,
+                {
+                    amount: Number(amount), 
+                    to: AccNum,
+                    password: password
                 },
-                params: { password }, 
-                data:{
-                    amount:amount,
-                    to:"1234567890"
+                {
+                    headers: {
+                        token: localStorage.getItem("Token"),
+                    },
+                    
                 }
-            });
-            onClose()
-        }
-        catch (e) {
-            console.log(e)
+            );
+            onClose();
+        } catch (e) {
+            console.error("Transaction failed:", e);
+            alert("Transaction failed");
         }
     }
+    
     return (
         open && <div className=" flex justify-center items-center  fixed inset-0 z-50 ">
             <div className="fixed inset-0 bg-gray-200 opacity-60" onClick={onClose}></div>
@@ -47,22 +55,22 @@ export function TransactionContentModel({ open, onClose }: TransactionContentMod
                             Amount:
                         </span>
                         <div className="border-1 items-center">
-                            <input ref={amountRef} type="text" placeholder="Enter Amount" />
+                            <input className="w-full" ref={amountRef} type="text" placeholder="Enter Amount" />
                         </div>
                     </div>
                     <div>
-                        <span className="font-semibold">
+                        <span className="font-semibold ">
                             Account Number:
                         </span>
-                        <div className="border-1 items-center">
-                            <input ref={AccNumRef} type="text" placeholder="Enter Account Number" />
+                        <div className="border-1 items-center ">
+                            <input className="w-full" ref={AccNumRef} type="text" placeholder="Enter Account Number" />
                         </div>
                     </div>
                     <span className="font-semibold">
                         Password:
                     </span>
                     <div className="border-1 items-center">
-                        <input ref={passwordRef} type="text" placeholder="Enter your password" />
+                        <input className="w-full" ref={passwordRef} type="text" placeholder="Enter your password" />
                     </div>
                     <div className="flex justify-center pt-1  items-center">
                         <button className="bg-black text-white cursor-pointer rounded-lg px-2 py-1" onClick={submit}>Submit</button>

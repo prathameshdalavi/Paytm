@@ -39,7 +39,7 @@ export function BalanceContentModel({ open, onClose }: BalanceContentModelProps)
                         Password:
                     </span>
                     <div className="border-1 items-center">
-                        <input ref={passwordRef} type="text" placeholder="Enter your password" />
+                        <input className="w-full" ref={passwordRef} type="text" placeholder="Enter your password" />
                     </div>
                     <div className="flex justify-center pt-1  items-center">
                         <button className="bg-black text-white cursor-pointer rounded-lg px-2 py-1" onClick={submit}>Submit</button>

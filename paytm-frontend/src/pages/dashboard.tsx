@@ -4,6 +4,7 @@ import { AccountContentModel } from "../components/accountContentModel";
 import { BackendUrl } from "../config";
 import axios from "axios";
 import { TransactionContentModel } from "../components/transationContentModel";
+import { PaytmIcon } from "../components/icons";
 export function Dashboard() {
     const [openBalanceModel, setOpenBalanceModel] = useState(false)
     const [openAccountModel, setOpenAccountModel] = useState(false)
@@ -26,25 +27,34 @@ export function Dashboard() {
     }, []);
 
     return (
-        <div className=" w-screen h-screen">
-            <div>
-                Paytm
-            </div>
-            <div>
-                <AccountContentModel open={openAccountModel} onClose={() => setOpenAccountModel(false)} />
-                <button onClick={() => setOpenAccountModel(true)}>Add Account</button>
-            </div>
-            <div >
-                <BalanceContentModel open={openBalanceModel} onClose={() => setOpenBalanceModel(false)} />
-                <button onClick={() => setOpenBalanceModel(true)}>check balance</button>
+        <div className=" w-screen bg-blue-50 h-screen">
+            <div className="flex items-center border-1  border-gray-100  bg-gray-300  rounded-sm justify-around">     
+                <div className="" >
+                    <PaytmIcon />
+                </div>
+                <div>
+                    <AccountContentModel open={openAccountModel} onClose={() => setOpenAccountModel(false)} />
+                    <button className="bg-blue-400 cursor-pointer text-white font-semibold py-2 px-4 rounded-2xl" onClick={() => setOpenAccountModel(true)}>Add Account</button>
+                </div>
+                <div >
+                    <BalanceContentModel open={openBalanceModel} onClose={() => setOpenBalanceModel(false)} />
+                    <button className="bg-blue-400 cursor-pointer text-white font-semibold py-2 px-4 rounded-2xl" onClick={() => setOpenBalanceModel(true)}>check balance</button>
+                </div>
+                <div>
+                    <button className="bg-blue-400 cursor-pointer text-white font-semibold py-2 px-4 rounded-2xl">Transation History</button>
+                </div>
             </div>
             <div>
                 <TransactionContentModel open={openSendMoneyModel} onClose={() => setOpenSendMoneyModel(false)} />
             </div>
-            <div>
-                sendMoney to anyone
+            <div className="p-4">
+            <div className="flex items-center  mt-15 gap-2">
+                <img className="w-20 h-13 rounded-3xl border-1 border-gray-300" src="https://assetscdn1.paytm.com/images/catalog/view/308023/1615956941865.png" alt=""></img>
+                <div className="text-md font-bold text-gray-600 ">
+                    sendMoney to <br /> anyone
+                </div>
             </div>
-            <table className="w-full border-collapse border border-gray-300">
+            <table className="w-full border-collapse mt-8 border border-gray-300">
                 <thead>
                     <tr className="bg-gray-200">
                         <th className="border border-gray-300 px-4 py-2">Account Name</th>
@@ -64,6 +74,7 @@ export function Dashboard() {
                     ))}
                 </tbody>
             </table>
+            </div>
 
         </div>
     )

@@ -67,8 +67,8 @@ app.post("/api/v1/signUp", async function (req: Request, res: Response) {
     }
 })
 app.post("/api/v1/signIn", async function (req: Request, res: Response) {
-    const {email, password } = req.body;
-    if ( !password) {
+    const { email, password } = req.body;
+    if (!password) {
         res.status(400).json({
             message: "Email and Password are required"
         })
@@ -76,7 +76,7 @@ app.post("/api/v1/signIn", async function (req: Request, res: Response) {
         return
     }
     try {
-        const response = await User.findOne({email});
+        const response = await User.findOne({ email });
         if (!response) {
             res.status(401).json({
                 message: "user doesnot exits"
@@ -117,7 +117,7 @@ app.post("/api/v1/addAccount", usermiddleware, async function (req: Request, res
     const requireBody = z.object({
         password: z.string().min(6).max(30),
     })
-    try{
+    try {
         const parseData = requireBody.safeParse(req.body);
         if (!parseData.success) {
             res.status(400).json({
@@ -134,7 +134,7 @@ app.post("/api/v1/addAccount", usermiddleware, async function (req: Request, res
                 error: e.errors
             })
             return;
-    }
+        }
     }
     try {
         const hashPassword = await bcrypt.hash(password, 10);
@@ -158,11 +158,11 @@ app.get("/api/v1/users", usermiddleware, async function (req: Request, res: Resp
     const thisUserId = req.body.userId.userId;
     try {
         const users = await User.find({ _id: { $ne: thisUserId } });
-        const usersData=users.map((users)=>({
-            name:users.firstName+" "+users.lastName,
-            accountNumber:users._id.toString()
+        const usersData = users.map((users) => ({
+            name: users.firstName + " " + users.lastName,
+            accountNumber: users._id.toString()
         }))
-        res.json({data:usersData});
+        res.json({ data: usersData });
     } catch (e) {
         res.status(500).json({
             message: "Something went wrong",
@@ -173,22 +173,57 @@ app.get("/api/v1/users", usermiddleware, async function (req: Request, res: Resp
 app.get("/api/v1/balance", usermiddleware, async function (req: Request, res: Response) {
     const userId = req.body.userId.userId;
     const password = req.query.password as string;
-
     try {
         const account: any = await Account.findOne({ userId: userId });
         if (!account) {
             res.status(404).json({ message: "Account not found" });
             return;
         }
-
         const passwordMatch = await bcrypt.compare(password, account.password);
         if (!passwordMatch) {
             res.status(401).json({ message: "Incorrect password" });
             return;
         }
-
         res.json({ balance: account.balance });
-
+    } catch (e) {
+        res.status(500).json({
+            message: "Something went wrong",
+            error: e
+        });
+    }
+});
+app.post("/api/v1/transaction", usermiddleware, async function (req: Request, res: Response) {
+    const { amount, to, password } = req.body;
+    const userId = req.body.userId.userId;
+    try {
+        const account: any = await Account.findOne({ userId: userId });
+        if (!account) {
+            res.status(404).json({ message: "Account not found" });
+            return;
+        }
+        const passwordMatch = await bcrypt.compare(password, account.password);
+        if (!passwordMatch) {
+            res.status(401).json({ message: "Incorrect password" });
+            return;
+        }
+        const session = await mongoose.startSession();
+        session.startTransaction();
+        if (account.balance < amount) {
+            await session.abortTransaction();
+            res.status(400).json({ message: "Insufficient balance" });
+            return;
+        }
+        const toAccount = await Account.findOne({ userId: to }).session(session);
+        if (!toAccount) {
+            await session.abortTransaction();
+            res.status(400).json({ message: "Invalid recipient account" });
+            return;
+        }
+        await Account.updateOne({ userId: userId }, { $inc: { balance: -amount } }).session(session);
+        await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
+        await Transaction.create([{ from: userId, to: to, amount: amount }], { session });
+        await session.commitTransaction();
+        res.json({ message: "Transfer successful" });
     } catch (e) {
         res.status(500).json({
             message: "Something went wrong",
@@ -197,57 +232,10 @@ app.get("/api/v1/balance", usermiddleware, async function (req: Request, res: Re
     }
 });
 
-
-app.post("/api/v1/transaction", usermiddleware, async function (req: Request, res: Response) {
-        const {amount, to} = req.body;
-        const password = req.query.password as string;
-        const userId = req.body.userId.userId;
-        try {
-            const account: any = await Account.findOne({ userId: userId });
-            if (!account) {
-                res.status(404).json({ message: "Account not found" });
-                return;
-            }
-            const passwordMatch = await bcrypt.compare(password, account.password);
-            if (!passwordMatch) {
-                res.status(401).json({ message: "Incorrect password" });
-                return;
-            }
-            const session = await mongoose.startSession();
-            session.startTransaction();
-    
-            if (account.balance < amount) {
-                await session.abortTransaction();
-                 res.status(400).json({ message: "Insufficient balance" });
-                return;
-            }
-    
-            const toAccount = await Account.findOne({ userId: to }).session(session);
-            if (!toAccount) {
-                await session.abortTransaction();
-                res.status(400).json({ message: "Invalid recipient account" });
-                return;
-            }
-    
-            await Account.updateOne({ userId: userId }, { $inc: { balance: -amount } }).session(session);
-            await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
-            await Transaction.create([{ from: userId, to: to, amount: amount }], { session });
-    
-            await session.commitTransaction();
-            res.json({ message: "Transfer successful" });
-    
-        } catch (e) {
-            res.status(500).json({
-                message: "Something went wrong",
-                error: e
-            });
-        }
-    });
-    
 app.get("/api/v1/transactionHistory", usermiddleware, async function (req: Request, res: Response) {
     const userId = req.body.userId.userId;
     try {
-        const transactionHistory: any = await Transaction.find({ from:req.body.userId.userId }).sort({ createdAt: -1 });
+        const transactionHistory: any = await Transaction.find({ from: req.body.userId.userId }).sort({ createdAt: -1 });
         res.json(transactionHistory)
     }
     catch (e) {

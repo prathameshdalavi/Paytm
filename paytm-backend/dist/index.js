@@ -220,7 +220,7 @@ app.get("/api/v1/balance", middleware_1.usermiddleware, function (req, res) {
 });
 app.post("/api/v1/transaction", middleware_1.usermiddleware, function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { password, amount, to } = req.body;
+        const { amount, to, password } = req.body;
         const userId = req.body.userId.userId;
         try {
             const account = yield db_1.Account.findOne({ userId: userId });
