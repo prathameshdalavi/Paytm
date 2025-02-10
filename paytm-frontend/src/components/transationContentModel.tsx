@@ -1,38 +1,44 @@
-import { useRef, useState } from "react";
+import { useRef, useEffect } from "react";
 import { CrossIcon } from "./icons";
 import { BackendUrl } from "../config";
 import axios from "axios";
 interface TransactionContentModelProps {
-    open: boolean;
+    open: { state: boolean, accountNumber: string };
     onClose: () => void;
 }
 export function TransactionContentModel({ open, onClose }: TransactionContentModelProps) {
-    const passwordRef = useRef<HTMLInputElement>(null)
-    const amountRef = useRef<HTMLInputElement>(null)
-    const AccNumRef = useRef<HTMLInputElement>(null)
+    const passwordRef = useRef<HTMLInputElement>(null);
+    const amountRef = useRef<HTMLInputElement>(null);
+    const accountNumberRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (accountNumberRef.current) {
+            accountNumberRef.current.value = open.accountNumber;
+        }
+    }, [open.accountNumber]);
+
     async function submit() {
         const password = passwordRef.current?.value;
         const amount = amountRef.current?.value;
-        const AccNum = AccNumRef.current?.value;
-    
-        if (!password || !amount || !AccNum) {
+        const accountNumber = accountNumberRef.current?.value;
+
+        if (!password || !amount || !accountNumber) {
             alert("All fields are required");
             return;
         }
-    
+
         try {
             await axios.post(
                 `${BackendUrl}/api/v1/transaction`,
                 {
-                    amount: Number(amount), 
-                    to: AccNum,
+                    amount: Number(amount),
+                    to: accountNumber,
                     password: password
                 },
                 {
                     headers: {
                         token: localStorage.getItem("Token"),
                     },
-                    
                 }
             );
             onClose();
@@ -41,14 +47,14 @@ export function TransactionContentModel({ open, onClose }: TransactionContentMod
             alert("Transaction failed");
         }
     }
-    
+
     return (
-        open && <div className=" flex justify-center items-center  fixed inset-0 z-50 ">
+        open.state && <div className=" flex justify-center items-center  fixed inset-0 z-50 ">
             <div className="fixed inset-0 bg-gray-200 opacity-60" onClick={onClose}></div>
             <div className="w-96 h-54 border-1 opacity-100 z-50 bg-slate-200 ">
                 <span onClick={onClose} className="flex justify-end cursor-pointer">
                     <CrossIcon />
-                </span> 
+                </span>
                 <div className="px-4">
                     <div>
                         <span className="font-semibold">
@@ -63,7 +69,7 @@ export function TransactionContentModel({ open, onClose }: TransactionContentMod
                             Account Number:
                         </span>
                         <div className="border-1 items-center ">
-                            <input className="w-full" ref={AccNumRef} type="text" placeholder="Enter Account Number" />
+                            <input className="w-full" type="text" placeholder="Enter Account Number" ref={accountNumberRef} />
                         </div>
                     </div>
                     <span className="font-semibold">
