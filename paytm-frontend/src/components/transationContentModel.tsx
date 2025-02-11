@@ -50,8 +50,8 @@ export function TransactionContentModel({ open, onClose }: TransactionContentMod
 
     return (
         open.state && <div className=" flex justify-center items-center  fixed inset-0 z-50 ">
-            <div className="fixed inset-0 bg-gray-200 opacity-60" onClick={onClose}></div>
-            <div className="w-96 h-54 border-1 opacity-100 z-50 bg-slate-200 ">
+            <div className="fixed inset-0 bg-gray-400 opacity-60" onClick={onClose}></div>
+            <div className="w-96 h-56 border-1 opacity-100 z-50 bg-white ">
                 <span onClick={onClose} className="flex justify-end cursor-pointer">
                     <CrossIcon />
                 </span>
@@ -60,26 +60,26 @@ export function TransactionContentModel({ open, onClose }: TransactionContentMod
                         <span className="font-semibold">
                             Amount:
                         </span>
-                        <div className="border-1 items-center">
+                        <div className="border-1 mt-1 bg-gray-200 items-center">
                             <input className="w-full" ref={amountRef} type="text" placeholder="Enter Amount" />
                         </div>
                     </div>
                     <div>
-                        <span className="font-semibold ">
+                        <span className="font-semibold  ">
                             Account Number:
                         </span>
-                        <div className="border-1 items-center ">
+                        <div className="border-1 mt-1  bg-gray-200 items-center ">
                             <input className="w-full" type="text" placeholder="Enter Account Number" ref={accountNumberRef} />
                         </div>
                     </div>
-                    <span className="font-semibold">
+                    <span className="font-semibold ">
                         Password:
                     </span>
-                    <div className="border-1 items-center">
+                    <div className="border-1 mt-1 bg-gray-200 items-center">
                         <input className="w-full" ref={passwordRef} type="text" placeholder="Enter your password" />
                     </div>
-                    <div className="flex justify-center pt-1  items-center">
-                        <button className="bg-black text-white cursor-pointer rounded-lg px-2 py-1" onClick={submit}>Submit</button>
+                    <div className="flex justify-center mt-0.5 pt-1  items-center">
+                        <button className="bg-gray-800 text-white cursor-pointer rounded-lg px-2 py-1" onClick={submit}>Submit</button>
                     </div>
                 </div>
             </div>

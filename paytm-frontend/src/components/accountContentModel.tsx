@@ -38,8 +38,8 @@ export function AccountContentModel({open, onClose}: AccountContentModelProps){
     }
     return (
             open && <div className=" flex justify-center items-center  fixed inset-0 z-50 ">
-                <div className="fixed inset-0 bg-gray-200 opacity-60" onClick={onClose}></div>
-                <div className="w-72 h-28 border-1 opacity-100 z-50 bg-slate-200 ">
+                <div className="fixed inset-0 bg-gray-400 opacity-60" onClick={onClose}></div>
+                <div className="w-72 h-32  border-1 opacity-100 z-50 bg-white ">
                     <span onClick={onClose} className="flex justify-end cursor-pointer">
                         <CrossIcon />
                     </span> 
@@ -47,11 +47,11 @@ export function AccountContentModel({open, onClose}: AccountContentModelProps){
                         <span className="font-semibold">
                             Password:
                         </span>
-                        <div className="border-1 items-center">
-                            <input ref={passwordRef} type="text" placeholder="Enter your password" />
+                        <div className="border-1  items-center mt-2">
+                            <input className="w-full bg-gray-200" ref={passwordRef} type="text" placeholder="Enter your password" />
                         </div>
                         <div className="flex justify-center pt-1  items-center">
-                            <button className="bg-black text-white cursor-pointer rounded-lg px-2 py-1" onClick={submit}>Submit</button>
+                            <button className="bg-gray-800 text-white cursor-pointer rounded-lg mt-2 px-2 py-1" onClick={submit}>Submit</button>
                         </div>
                     </div>
                 </div>
