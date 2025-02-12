@@ -5,10 +5,12 @@ import { BackendUrl } from "../config";
 import axios from "axios";
 import { TransactionContentModel } from "../components/transationContentModel";
 import { PaytmIcon } from "../components/icons";
+import { TransactionHistoryContentModel } from "../components/transactionHistoryContentModel";
 
 export function Dashboard() {
     const [openBalanceModel, setOpenBalanceModel] = useState(false);
     const [openAccountModel, setOpenAccountModel] = useState(false);
+    const [openHistoryModel, setOpenHistoryModel] = useState(false);
     const [openSendMoneyModel, setOpenSendMoneyModel] = useState({state: false, accountNumber: ""});
     const [users, setUsers] = useState([]);
 
@@ -54,7 +56,8 @@ export function Dashboard() {
                     </button>
                 </div>
                 <div>
-                    <button className="bg-blue-400 cursor-pointer text-white font-semibold py-2 px-4 rounded-2xl">
+                    <TransactionHistoryContentModel open={openHistoryModel} onClose={() => setOpenHistoryModel(false)} />
+                    <button onClick={() => setOpenHistoryModel(true)} className="bg-blue-400 cursor-pointer text-white font-semibold py-2 px-4 rounded-2xl">
                         Transaction History
                     </button>
                 </div>
