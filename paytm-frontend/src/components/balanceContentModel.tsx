@@ -38,7 +38,7 @@ export function BalanceContentModel({ open, onClose }: BalanceContentModelProps)
                     <span className="font-semibold">
                         Password:
                     </span>
-                    <div className="border-1 bg-gray-200 px-2 mt-2 items-center">
+                    <div className="border-1 bg-gray-200 mt-2 items-center">
                         <input className="w-full" ref={passwordRef} type="text" placeholder="Enter your password" />
                     </div>
                     <div className="flex justify-center pt-1  items-center">

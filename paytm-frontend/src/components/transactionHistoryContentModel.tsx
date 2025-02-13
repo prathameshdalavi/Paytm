@@ -50,8 +50,8 @@ export function TransactionHistoryContentModel({ open, onClose }: TransactionHis
                         <span onClick={onClose} className="flex justify-end cursor-pointer">
                             <CrossIcon />
                         </span>
-                        <div className="mt-4 max-h-4/5 overflow-y-auto border border-gray-300 rounded-md">
-                            <table className="w-full border-collapse">
+                        <div className="mt-4 max-h-4/5 overflow-y-auto items-centern border border-gray-300 rounded-md">
+                            <table className="w-full  border-collapse">
                                 <thead className="sticky top-0 bg-gray-200">
                                     <tr>
                                         <th className="border border-gray-300 px-4 py-2">Account Number</th>
@@ -60,7 +60,7 @@ export function TransactionHistoryContentModel({ open, onClose }: TransactionHis
                                         <th className="border border-gray-300 px-4 py-2">Date & Time</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody >
                                     {history.length === 0 ? (
                                         <tr>
                                             <td colSpan={4} className="text-center py-4">
