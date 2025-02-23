@@ -1,10 +1,13 @@
 import { useRef } from "react"
 import { BackendUrl } from "../config"
 import axios from "axios"
+import { useNavigate } from "react-router-dom"
 export function Signin() {
     const emailRef=useRef<HTMLInputElement>(null)
+    const navigate=useNavigate()
     const passwordRef=useRef<HTMLInputElement>(null)
     async function signIn(){
+        
         const email=emailRef.current?.value
         const password=passwordRef.current?.value
         
@@ -15,6 +18,7 @@ export function Signin() {
             })
             const jwtToken=response.data.token;
             localStorage.setItem("Token",jwtToken);
+            navigate("/")
         }
         catch(e){
             console.log(e)

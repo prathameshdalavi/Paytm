@@ -88,7 +88,12 @@ export function Dashboard() {
                                 <th className="border border-gray-300 px-4 py-2">Send Money</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        {users.length===0 ?
+                        <tr>
+                        <td colSpan={3} className="text-center py-4">
+                            No users found
+                        </td>
+                    </tr>:<tbody>
                             {users.map((user: { name: string; accountNumber: string }, index) => (
                                 <tr key={index} className="hover:bg-gray-100">
                                     <td className="border border-gray-300 px-4 py-2">{user.name}</td>
@@ -104,7 +109,7 @@ export function Dashboard() {
                                     </td>
                                 </tr>
                             ))}
-                        </tbody>
+                        </tbody>}
                     </table>
                 </div>
             </div>
