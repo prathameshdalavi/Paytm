@@ -24,8 +24,7 @@ export function TransactionHistoryContentModel({ open, onClose }: TransactionHis
                 const response = await axios.get(`${BackendUrl}/api/v1/transactionHistory`, {
                     headers: { token: localStorage.getItem("Token") },
                 });
-
-                // Check if response is an object or array
+                
                 if (Array.isArray(response.data)) {
                     setHistory(response.data);
                 } else {
@@ -44,43 +43,47 @@ export function TransactionHistoryContentModel({ open, onClose }: TransactionHis
     return (
         <div>
             {open && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="fixed inset-0 z-50 flex items-center justify-center px-4 sm:px-6 md:px-8">
                     <div className="fixed inset-0 bg-gray-400 opacity-60" onClick={onClose}></div>
-                    <div className="w-200 h-120 border opacity-100 z-50 bg-white p-4 rounded-lg shadow-lg">
-                        <span onClick={onClose} className="flex justify-end cursor-pointer">
+                    <div className="relative w-full max-w-4xl lg:max-w-5xl bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-lg overflow-hidden">
+                        <span onClick={onClose} className="absolute top-2 right-2 cursor-pointer">
                             <CrossIcon />
                         </span>
-                        <div className="mt-4 max-h-4/5 overflow-y-auto items-centern border border-gray-300 rounded-md">
-                            <table className="w-full  border-collapse">
-                                <thead className="sticky top-0 bg-gray-200">
-                                    <tr>
-                                        <th className="border border-gray-300 px-4 py-2">Account Number</th>
-                                        <th className="border border-gray-300 px-4 py-2">Receiver's Account Number</th>
-                                        <th className="border border-gray-300 px-4 py-2">Amount</th>
-                                        <th className="border border-gray-300 px-4 py-2">Date & Time</th>
-                                    </tr>
-                                </thead>
-                                <tbody >
-                                    {history.length === 0 ? (
+                        <div className="mt-4 border border-gray-300 rounded-md max-h-[70vh] overflow-y-auto">
+                            <div className="w-full overflow-x-auto">
+                                <table className="w-full border-collapse text-xs sm:text-sm md:text-base min-w-[600px]">
+                                    <thead className="sticky top-0 bg-gray-200">
                                         <tr>
-                                            <td colSpan={4} className="text-center py-4">
-                                                No transactions found
-                                            </td>
+                                            <th className="border border-gray-300 px-2 sm:px-4 py-2 whitespace-nowrap">Account Number</th>
+                                            <th className="border border-gray-300 px-2 sm:px-4 py-2 whitespace-nowrap">Receiver's Account Number</th>
+                                            <th className="border border-gray-300 px-2 sm:px-4 py-2 whitespace-nowrap">Amount</th>
+                                            <th className="border border-gray-300 px-2 sm:px-4 py-2 whitespace-nowrap">Date & Time</th>
                                         </tr>
-                                    ) : (
-                                        history.map((item, index) => (
-                                            <tr key={index} className="hover:bg-gray-100">
-                                                <td className="border border-gray-300 px-4 py-2">{item.from}</td>
-                                                <td className="border border-gray-300 px-4 py-2">{item.to}</td>
-                                                <td className="border border-gray-300 px-4 py-2">{item.amount}</td>
-                                                <td className="border border-gray-300 px-4 py-2">
-                                                    {new Date(item.createdAt).toLocaleString()}
-                                                </td>
+                                    </thead>
+                                    <tbody>
+                                        {history.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={4} className="text-center py-4">No transactions found</td>
                                             </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
+                                        ) : (
+                                            history.map((item, index) => (
+                                                <tr key={index} className="hover:bg-gray-100">
+                                                    <td className="border border-gray-300 px-2 sm:px-4 py-2 truncate max-w-[150px] md:max-w-[200px]">
+                                                        {item.from}
+                                                    </td>
+                                                    <td className="border border-gray-300 px-2 sm:px-4 py-2 truncate max-w-[150px] md:max-w-[200px]">
+                                                        {item.to}
+                                                    </td>
+                                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">{item.amount}</td>
+                                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">
+                                                        {new Date(item.createdAt).toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
